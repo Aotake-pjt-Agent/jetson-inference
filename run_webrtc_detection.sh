@@ -97,6 +97,9 @@ if [ ! -e "$CAMERA_INPUT" ] && [ "$CAMERA_INPUT" != "csi://0" ]; then
     exit 1
 fi
 
+# Use the simple WebRTC script
+WEBRTC_SCRIPT="jetson-webrtc-detection/src/webrtc_detectnet_simple.py"
+
 # Check if WebRTC script exists
 if [ ! -f "$WEBRTC_SCRIPT" ]; then
     echo "❌ エラー: WebRTC検知スクリプト $WEBRTC_SCRIPT が見つかりません"

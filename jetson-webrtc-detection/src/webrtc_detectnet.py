@@ -3,6 +3,46 @@
 
 """
 Jetson WebRTC Object Detection Server
+Real-time object detection with WebRTC streaming
+
+Copyright (c) 2025, Aotake Project. All rights reserved.
+"""
+
+import os
+import sys
+
+# Set UTF-8 environment variables
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+os.environ['LC_ALL'] = 'C.UTF-8'
+os.environ['LANG'] = 'C.UTF-8'
+
+import argparse
+import time
+import threading
+from jetson_inference import detectNet
+from jetson_utils import videoSource, videoOutput, Log
+
+class WebRTCDetectionServer:
+    def __init__(self, input_uri, network="ssd-mobilenet-v2", threshold=0.5,
+                 port=8554, width=1280, height=720):
+        """
+        Initialize WebRTC Object Detection Server
+
+        Args:
+            input_uri (str): Input camera URI (e.g., /dev/video0)
+            network (str): Detection network to use
+            threshold (float): Detection confidence threshold
+            port (int): WebRTC server port
+            width (int): Video width
+            height (int): Video height
+        """utf-8 -*-
+
+"        print(f"[INIT] Initializing WebRTC Detection Server...")
+        print(f"   Input: {input_uri}")
+        print(f"   Network: {network}")
+        print(f"   Threshold: {threshold}")
+        print(f"   Port: {port}")
+        print(f"   Resolution: {width}x{height}")son WebRTC Object Detection Server
 リアルタイム物体検知のWebRTCストリーミング配信
 
 Copyright (c) 2025, Aotake Project. All rights reserved.
@@ -56,7 +96,7 @@ class WebRTCDetectionServer:
 
     def initialize(self):
         """
-        検知ネットワークとビデオI/Oを初期化
+        Initialize detection network and video I/O
         """
         try:
             # 物体検知ネットワークを読み込み
