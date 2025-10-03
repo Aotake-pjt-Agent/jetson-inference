@@ -35,7 +35,7 @@ ENV SHELL /bin/bash
 
 WORKDIR /jetson-inference
 
-  
+
 #
 # install development packages
 #
@@ -43,22 +43,22 @@ RUN add-apt-repository --remove "deb https://apt.kitware.com/ubuntu/ $(lsb_relea
     apt-get update && \
     apt-get purge -y '*opencv*' || echo "existing OpenCV installation not found" && \
     apt-get install -y --no-install-recommends \
-            cmake \
-		  nano \
-		  mesa-utils \
-		  lsb-release \
-		  gstreamer1.0-tools \
-		  gstreamer1.0-libav \
-		  gstreamer1.0-rtsp \
-		  gstreamer1.0-plugins-good \
-		  gstreamer1.0-plugins-bad \
-		  gstreamer1.0-plugins-ugly \
-		  libgstreamer-plugins-base1.0-dev \
-		  libgstreamer-plugins-good1.0-dev \
-		  libgstreamer-plugins-bad1.0-dev && \
+    cmake \
+    nano \
+    mesa-utils \
+    lsb-release \
+    gstreamer1.0-tools \
+    gstreamer1.0-libav \
+    gstreamer1.0-rtsp \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-good1.0-dev \
+    libgstreamer-plugins-bad1.0-dev && \
     if [ `lsb_release --codename --short` != 'bionic' ]; then \
     apt-get install -y --no-install-recommends \
-		  gstreamer1.0-plugins-rtp; \
+    gstreamer1.0-plugins-rtp; \
     else echo "skipping packages unavailable for Ubuntu 18.04"; fi \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
@@ -70,20 +70,22 @@ RUN mkdir -p /usr/local/include/gstreamer-1.0/gst && \
     ls -ll /usr/local/include/gstreamer-1.0/gst/webrtc
 
 
-# 
+#
 # install python packages
 #
 COPY python/training/detection/ssd/requirements.txt /tmp/pytorch_ssd_requirements.txt
 COPY python/www/flask/requirements.txt /tmp/flask_requirements.txt
 COPY python/www/dash/requirements.txt /tmp/dash_requirements.txt
+COPY jetson-webrtc-detection/requirements.txt /tmp/webrtc_detection_requirements.txt
 
 RUN pip3 install --no-cache-dir --verbose --upgrade Cython && \
     pip3 install --no-cache-dir --verbose -r /tmp/pytorch_ssd_requirements.txt && \
     pip3 install --no-cache-dir --verbose -r /tmp/flask_requirements.txt && \
-    pip3 install --no-cache-dir --verbose -r /tmp/dash_requirements.txt
-    
-    
-# 
+    pip3 install --no-cache-dir --verbose -r /tmp/dash_requirements.txt && \
+    pip3 install --no-cache-dir --verbose -r /tmp/webrtc_detection_requirements.txt
+
+
+#
 # install OpenCV (with CUDA)
 #
 ARG OPENCV_URL=https://nvidia.box.com/shared/static/5v89u6g5rb62fpz4lh0rz531ajo2t5ef.gz
@@ -92,7 +94,7 @@ ARG OPENCV_DEB=OpenCV-4.5.0-aarch64.tar.gz
 COPY docker/containers/scripts/opencv_install.sh /tmp/opencv_install.sh
 RUN cd /tmp && ./opencv_install.sh ${OPENCV_URL} ${OPENCV_DEB}
 
-  
+
 #
 # copy source
 #
@@ -101,6 +103,8 @@ COPY examples examples
 COPY python python
 COPY tools tools
 COPY utils utils
+COPY jetson-webrtc-detection jetson-webrtc-detection
+COPY run_webrtc_detection.sh run_webrtc_detection.sh
 COPY data/networks/models.json data/networks/models.json
 
 COPY CMakeLists.txt CMakeLists.txt
@@ -123,7 +127,10 @@ RUN mkdir docs && \
     /bin/bash -O extglob -c "cd /jetson-inference/build; rm -rf -v !($(uname -m)|download-models.*)" && \
     rm -rf /var/lib/apt/lists/* \
     && apt-get clean
-    
+
+# set execute permissions for WebRTC detection script
+RUN chmod +x /jetson-inference/run_webrtc_detection.sh
+
 # build out-of-tree samples
 RUN cd examples/my-recognition && \
     mkdir build && \
