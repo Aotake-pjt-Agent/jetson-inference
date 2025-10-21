@@ -26,6 +26,11 @@ THRESHOLD="0.5"
 PORT="8554"
 WIDTH="1280"
 HEIGHT="720"
+SHEET_CREDENTIALS=""
+SHEET_ID=""
+SHEET_TAB=""
+SHEET_BUFFER="10"
+SHEET_INTERVAL="2.0"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -54,6 +59,26 @@ while [[ $# -gt 0 ]]; do
             HEIGHT="$2"
             shift 2
             ;;
+        --sheet-credentials)
+            SHEET_CREDENTIALS="$2"
+            shift 2
+            ;;
+        --sheet-id)
+            SHEET_ID="$2"
+            shift 2
+            ;;
+        --sheet-tab)
+            SHEET_TAB="$2"
+            shift 2
+            ;;
+        --sheet-buffer)
+            SHEET_BUFFER="$2"
+            shift 2
+            ;;
+        --sheet-interval)
+            SHEET_INTERVAL="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "使用方法: $0 [オプション]"
             echo ""
@@ -64,11 +89,17 @@ while [[ $# -gt 0 ]]; do
             echo "  --port PORT        WebRTCポート (デフォルト: 8554)"
             echo "  --width WIDTH      映像幅 (デフォルト: 1280)"
             echo "  --height HEIGHT    映像高さ (デフォルト: 720)"
+            echo "  --sheet-credentials PATH  GoogleサービスアカウントのJSON"
+            echo "  --sheet-id ID              GoogleスプレッドシートID"
+            echo "  --sheet-tab NAME           送信先タブ名 (省略時は先頭シート)"
+            echo "  --sheet-buffer N           バッチ送信件数 (デフォルト: 10)"
+            echo "  --sheet-interval SECONDS   バッチ送信間隔 (デフォルト: 2.0)"
             echo "  --help, -h         このヘルプを表示"
             echo ""
             echo "例:"
             echo "  $0"
             echo "  $0 --camera /dev/video0 --network ssd-mobilenet-v2 --port 8554"
+            echo "  $0 --sheet-credentials service.json --sheet-id 1AbCdEfGh"
             echo ""
             exit 0
             ;;
@@ -87,6 +118,11 @@ echo "  ネットワーク: $NETWORK"
 echo "  検知閾値: $THRESHOLD"
 echo "  WebRTCポート: $PORT"
 echo "  解像度: ${WIDTH}x${HEIGHT}"
+if [[ -n "$SHEET_ID" ]]; then
+    echo "  スプレッドシートID: $SHEET_ID"
+    echo "  タブ: ${SHEET_TAB:-先頭シート}"
+    echo "  バッファ: ${SHEET_BUFFER}件 / ${SHEET_INTERVAL}秒"
+fi
 echo ""
 
 # Check if camera device exists
@@ -116,13 +152,36 @@ echo ""
 echo "🛑 停止するには Ctrl+C を押してください"
 echo ""
 
-# Run the WebRTC detection server
-python3 "$WEBRTC_SCRIPT" "$CAMERA_INPUT" \
-    --network="$NETWORK" \
-    --threshold="$THRESHOLD" \
-    --port="$PORT" \
-    --width="$WIDTH" \
-    --height="$HEIGHT"
+# Build command with optional spreadsheet flags
+CMD=(python3 "$WEBRTC_SCRIPT" "$CAMERA_INPUT"
+    --network "$NETWORK"
+    --threshold "$THRESHOLD"
+    --port "$PORT"
+    --width "$WIDTH"
+    --height "$HEIGHT"
+)
+
+if [[ -n "$SHEET_CREDENTIALS" ]]; then
+    CMD+=(--sheet-credentials "$SHEET_CREDENTIALS")
+fi
+
+if [[ -n "$SHEET_ID" ]]; then
+    CMD+=(--sheet-id "$SHEET_ID")
+fi
+
+if [[ -n "$SHEET_TAB" ]]; then
+    CMD+=(--sheet-tab "$SHEET_TAB")
+fi
+
+if [[ -n "$SHEET_BUFFER" ]]; then
+    CMD+=(--sheet-buffer "$SHEET_BUFFER")
+fi
+
+if [[ -n "$SHEET_INTERVAL" ]]; then
+    CMD+=(--sheet-interval "$SHEET_INTERVAL")
+fi
+
+"${CMD[@]}"
 
 # Cleanup message
 echo ""
