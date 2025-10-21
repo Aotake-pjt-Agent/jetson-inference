@@ -1,0 +1,2 @@
+# This directory is intended to contain the pre-trained model files for the SSD MobileNet V2 object detection model. 
+# Please add the necessary model files here for the detection_handler.py to perform inference.

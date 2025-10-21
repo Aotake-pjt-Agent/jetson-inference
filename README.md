@@ -158,6 +158,29 @@ Additional C++ and Python samples for running the networks on images and live ca
 
 These examples will automatically be compiled while [Building the Project from Source](docs/building-repo-2.md), and are able to run the pre-trained models listed below in addition to custom models provided by the user.  Launch each example with `--help` for usage info.
 
+## WebRTC Object Detection with Spreadsheet Logging
+
+To stream detection results into Google Sheets while running the WebRTC server:
+
+1. Create or reuse a **service account** in Google Cloud Console, download its JSON key, and keep it outside the repository.  
+2. Share the target spreadsheet (or a dedicated tab) with the service account’s email so it has edit access.  
+3. Install the optional dependencies on the Jetson/host:  
+   ```bash
+   pip3 install gspread google-auth
+   ```  
+4. Launch the server with spreadsheet flags, for example:  
+   ```bash
+   ./run_webrtc_detection.sh \
+     --camera /dev/video0 \
+     --sheet-credentials /opt/keys/service.json \
+     --sheet-id 1AbCdEfGh... \
+     --sheet-tab LOG \
+     --sheet-buffer 20 \
+     --sheet-interval 1.0
+   ```  
+   Buffer and interval values control how many detections are batched before upload.
+5. Confirm the CLI shows `[SHEET]` messages and that new rows appear in the sheet; adjust batching if API rate limits occur. Keep credential files untracked and reference them via paths or environment variables.
+
 ## Pre-Trained Models
 
 The project comes with a number of pre-trained models that are available to use and will be automatically downloaded:
@@ -327,4 +350,3 @@ The DIGITS tutorial includes training DNN's in the cloud or PC, and inference on
 
 ##
 <p align="center"><sup>© 2016-2019 NVIDIA | </sup><a href="#deploying-deep-learning"><sup>Table of Contents</sup></a></p>
-
